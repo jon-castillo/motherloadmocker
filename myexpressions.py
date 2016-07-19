@@ -21,13 +21,17 @@ str_regexpattern_core_repeatedreferencedereference = '(?:[\*\&]*)'
 str_regexpattern_core_variableName = '(?:[~\w:_]+)'
 str_regexpattern_core_memberName = '(?:[~\w:_\<\>\+\-\*\/\=]+)(?:\s*)'
 str_regexpattern_core_variableType =                        \
+    sub_regexmodifier_optional(                             \
+        'const' +                                           \
+        str_regexpattern_core_spaceOrNoSpace                \
+    ) +                                                     \
     str_regexpattern_core_variableName +                    \
     sub_regexmodifier_optional(                             \
         str_regexpattern_core_spaceOrNoSpace +              \
         str_regexpattern_core_repeatedreferencedereference  \
     )
 
-str_regexpattern_method_specifierFront = '(?:(?:virtual|explicit)\s+)+'
+str_regexpattern_method_specifierFront = '(?:(?:virtual|explicit|FINAL|inline|static)\s+)+'
 str_regexpattern_method_returnType = str_regexpattern_core_variableType+ str_regexpattern_core_space
 str_regexpattern_method_parameterlist =                     \
     sub_regexmodifier_repeating(                            \
@@ -44,10 +48,36 @@ str_regexpattern_method_parameterlist =                     \
             ) +                                             \
             sub_regexmodifier_optional(                     \
                 str_regexpattern_core_spaceOrNoSpace +      \
-                ','                                        \
+                ','                                         \
             ) \
         )                                                   \
     )
+
+str_regexpattern_method_parameter =                     \
+    str_regexpattern_core_spaceOrNoSpace +              \
+    sub_regexmodifier_capture(                          \
+        sub_regexmodifier_optional(                         \
+            'const' +  \
+            str_regexpattern_core_spaceOrNoSpace \
+        ) \
+    ) + \
+    sub_regexmodifier_capture(                          \
+        str_regexpattern_core_variableType) +                \
+    str_regexpattern_core_spaceOrNoSpace +              \
+    sub_regexmodifier_optional(                         \
+        sub_regexmodifier_capture(                          \
+            str_regexpattern_core_variableName 
+        ) +            \
+        sub_regexmodifier_optional(                     \
+            str_regexpattern_core_spaceOrNoSpace +      \
+            '=' +                                       \
+            str_regexpattern_core_spaceOrNoSpace +      \
+            sub_regexmodifier_capture(                          \
+                str_regexpattern_core_variableName          \
+            ) \
+        )                                               \
+    )
+
 
 str_regexpattern_method_initializerlist =                   \
     sub_regexmodifier_repeating(                            \
@@ -86,6 +116,29 @@ str_regexpattern_method_cppmethod=                                              
     str_regexpattern_core_spaceOrNoSpace +                                          \
     sub_regexmodifier_optional('[;|{]')
 
+str_regexpattern_method_cppstaticmethod=                                                  \
+    '^' +                                                                           \
+    str_regexpattern_core_spaceOrNoSpace +                                          \
+    sub_regexmodifier_optional(sub_regexmodifier_capture('static')+str_regexpattern_core_spaceOrNoSpace) +                                           \
+    sub_regexmodifier_capture(sub_regexmodifier_optional(str_regexpattern_method_specifierFront )) +                    \
+    sub_regexmodifier_capture(sub_regexmodifier_optional(str_regexpattern_method_returnType)) +                         \
+    sub_regexmodifier_capture(str_regexpattern_core_memberName)+'\s*'+'\(' +                                         \
+    str_regexpattern_core_spaceOrNoSpace +                                          \
+    sub_regexmodifier_capture(sub_regexmodifier_optional(str_regexpattern_method_parameterlist)) +                                \
+    str_regexpattern_core_spaceOrNoSpace +                                          \
+    '\)'+                                                                           \
+    str_regexpattern_core_spaceOrNoSpace +                                          \
+    sub_regexmodifier_optional(                             \
+        ':' +                                               \
+        str_regexpattern_core_spaceOrNoSpace +                                          \
+        sub_regexmodifier_capture(str_regexpattern_method_initializerlist))                     \
+     + \
+    str_regexpattern_core_spaceOrNoSpace +                                          \
+    sub_regexmodifier_capture(sub_regexmodifier_optional(str_regexpattern_method_specifierBack)) +                      \
+    str_regexpattern_core_spaceOrNoSpace +                                          \
+    sub_regexmodifier_optional('[;|{]')
+
+
 
 str_debug_specifierfront = sub_regexmodifier_capture(sub_regexmodifier_optional(str_regexpattern_method_specifierFront ))
 str_debug_returntype = sub_regexmodifier_capture(sub_regexmodifier_optional(str_regexpattern_method_returnType))
@@ -93,6 +146,7 @@ str_debug_methodname =  sub_regexmodifier_capture(str_regexpattern_core_memberNa
 str_debug_paramlist = sub_regexmodifier_capture(sub_regexmodifier_optional(str_regexpattern_method_parameterlist))
 str_debug_initlist = '\)'+ str_regexpattern_core_spaceOrNoSpace + sub_regexmodifier_optional(':'+str_regexpattern_core_spaceOrNoSpace + sub_regexmodifier_capture( str_regexpattern_method_initializerlist))
 str_debug_specifierback = str_regexpattern_core_spaceOrNoSpace+sub_regexmodifier_capture(sub_regexmodifier_optional(str_regexpattern_method_specifierBack)) + str_regexpattern_core_spaceOrNoSpace + sub_regexmodifier_optional('[;|{]')
+str_debug_parameter = sub_regexmodifier_capture(str_regexpattern_method_parameter)
 #1.	virtual explicit
 #2.	int
 #3.	caller
